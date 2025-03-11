@@ -1,0 +1,139 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import logging
+import time
+from faker import Faker
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    filename="out.log",
+    filemode="w",
+    encoding="utf-8",
+)
+
+browsers = ["Chrome", "Firefox"]
+
+login_success = False
+
+for browser in browsers:
+    try:
+        if browser == "Chrome":
+            driver = webdriver.Chrome()
+        elif browser == "Firefox":
+            driver = webdriver.Firefox()
+
+        driver.maximize_window()
+        driver.get("https://nodefun-admin-development.azurewebsites.net/")
+
+        # Using explicit waits for elements to be present
+        wait = WebDriverWait(driver, 10)
+        superadmin = wait.until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    "/html/body/div[1]/div[2]/div[2]/div/div/div[1]/div/div/input",
+                )
+            )
+        )
+        password = wait.until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    "/html/body/div[1]/div[2]/div[2]/div/div/div[2]/div/div/input",
+                )
+            )
+        )
+        submit = wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH, "/html/body/div[1]/div[2]/div[2]/div/button")
+            )
+        )
+
+        superadmin.send_keys("superadmin@nodefun.app")
+        password.send_keys("NodeFunSuperAdmin")
+        submit.click()
+
+        # Wait for the login to be processed and check URL
+        time.sleep(
+            5
+        )  # Can be replaced with a wait condition if there's a specific element to wait for
+
+        if "login" not in driver.current_url:
+            login_success = True
+            logging.info(f"Login successful using {browser}")
+
+            # Navigate to all-clubs page
+            driver.get("https://nodefun-admin-development.azurewebsites.net/all-clubs")
+
+            # Click on the second button
+            second_button = wait.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "/html/body/div[1]/div[2]/div[2]/div[2]/button[2]")
+                )
+            )
+            second_button.click()
+
+            # Verify the text "Locations"
+            locations_text = wait.until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "/html/body/div[1]/div[2]/div[3]/h2")
+                )
+            )
+            assert locations_text.text == "Locations"
+
+            # Click on "+ Add New" button
+            add_new_button = wait.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//*[@id='__next']/div[2]/div[3]/div[1]/div/button[4]")
+                )
+            )
+            add_new_button.click()
+
+            # Type "new test location"
+            location_input = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        "/html/body/div[1]/div[2]/div[3]/div[2]/div[1]/div/div/input",
+                    )
+                )
+            )
+            location_input.send_keys("new test location")
+
+            # Add image (simulated by entering image path)
+            image_input = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        "/html/body/div[1]/div[2]/div[3]/div[2]/div[2]/div[2]",
+                    )
+                )
+            )
+            image_input.send_keys(f"faker.img")
+
+            # Click on save button
+            save_button = wait.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "/html/body/div[1]/div[2]/div[3]/div[3]/button")
+                )
+            )
+            save_button.click()
+
+            break
+        else:
+            logging.error(f"Login failed using {browser}")
+
+    except Exception as e:
+        logging.error(f"An error occurred while trying {browser}: {str(e)}")
+    finally:
+        try:
+            driver.quit()
+        except Exception as e:
+            logging.error(f"Error while closing the driver: {str(e)}")
+
+if not login_success:
+    logging.error("Login unsuccessful in all browsers. Check the app or cred.")
