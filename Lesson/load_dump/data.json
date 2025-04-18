@@ -1,0 +1,16 @@
+{ 
+    "club_name": "Real Madrid",
+    "club_country": "Spain",
+    "club_value": "3.6 billion",
+    "club_owner": "Florentino Perez",
+    "club_president": "Florentino Perez",
+    "club_manager": "Zinedine Zidane",
+},
+{
+    "club_name": "Barcelona",
+    "club_country": "Spain",
+    "club_value": "3.5 billion",
+    "club_owner": "Josep Maria Bartomeu",
+    "club_president": "Josep Maria Bartomeu",
+    "club_manager": "Quique Setien",
+}
